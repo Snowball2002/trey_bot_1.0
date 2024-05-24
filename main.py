@@ -16,8 +16,12 @@ def GetStock(stocksymbol):
     # low 
     #getting a simple error preventing it from printing 
     # on line 19 @ = 
-info_dictionary =
-{ "stocksymbol": stocksymbol,
+stocksymbol = json_data ['global quote'] ['01. symbol']
+price = float(json_data['Global Quote']['05. price'])
+previous_close = float (json_data['global quote']['0.8 previous close'])
+low = float(json_data['Global Quote']['04. low'])
+high = float(json_data['Global Quote']['03. high'])
+info_dictionary = { "stocksymbol": stocksymbol,
         "shouldbuy": shouldbuy,
         "price": price,
         "high": high,
