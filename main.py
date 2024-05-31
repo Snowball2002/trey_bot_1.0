@@ -7,6 +7,7 @@ def get_stock_info(json_data):
     low = float(json_data['Global Quote']['04. low'])
 
 
+
     shouldbuy = price > previous_close
 
 
@@ -43,6 +44,3 @@ json_data = {
         "10. change percent": "0.7042%"
     }
 }
-
-stock_info = get_stock_info(json_data)
-print(stock_info)
