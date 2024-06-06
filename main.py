@@ -1,4 +1,10 @@
 import requests
+from flask import Flask
+#app.config ['server_name'=] 'luke is the best:5000' #should change http /luke is the best 
+app = Flask(__name__)
+
+@app.route('/')
+
 
 def get_stock_info(stocksymbol):
     apikKey = "I2FIH3DMPX4A1GDM"
@@ -14,16 +20,34 @@ def get_stock_info(stocksymbol):
     low = json['Global Quote']['04. low']
 
     shouldbuy = price > previous_close
-
     info_dictionary = {
         "stocksymbol": stocksymbol,
         "shouldbuy": shouldbuy,
         "price": price,
-        "high": high,
-        "low": low, 
+        "high": high, "low": low,
         "previous_close": previous_close
     }
 
-    return ingo
+    return info_dictionary
 
-get_stock_info("ibm")
+  
+
+@app.route('/')
+def index():
+    stock_info = get_stock_info('IBM')
+    return stock_info
+
+if __name__ == '__main__':
+    app.run(host='Luke_is_the_best', port=5000, debug=True)
+
+
+
+#app = Flask(__name__)
+
+#from flask import Flask
+
+#app = Flask(__name__)
+
+### return "Hello, World!"
+
+
