@@ -1,9 +1,9 @@
 import requests
 from flask import Flask
-#app.config ['server_name'=] 'luke_is_the_best:5000' #should change http /luke is the best 
+
 app = Flask(__name__)
 
-@app.route('/')
+
 
 
 def get_stock_info(stocksymbol):
@@ -35,14 +35,14 @@ def get_stock_info(stocksymbol):
 
 @app.route('/')
 def index():
-    stock_info = get_stock_info('IBM')
+    stock_info = get_stock_info("IBM")
     return stock_info
 #this is a diff way to do it port 5000 is the end point but the end result does not workout 
 if __name__ == '__main__':
-    app.run(host='Luke_is_the_best', port=5000, debug=True)
+    app.run (debug=True)
     
 
-    get_stock_info("ibm")
+  
 
 #getdd info is beacasue its luke_is_the_best
 
