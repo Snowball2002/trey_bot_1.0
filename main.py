@@ -1,13 +1,19 @@
-from flask import Flask, request
+from flask import Flask, request, render_template_string
 import requests
+import os
+import certifi
+from pymongo import MongoClient
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
+
+
 def get_stock_info(stocksymbol):
-    apiKey = "WNAZJYYTNYT0CERA"
-    url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksymbol}&apikey={WNAZJYYTNYT0CERA}"
+    apiKey = "W4M5Z9F1QRGCA3UX"
+    url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksymbol}&apikey={apiKey}"
     httpresponse = requests.get(url)
-    data = httpresponse.json()
+    data = httpresponse.json() 
 
 
     print("API Response:", data)
@@ -106,19 +112,20 @@ def stocks():
                 border-radius: 5px;
                 text-decoration: none;
                 transition: background-color 0.3s;
-                margin: 10px; /* Space between buttons */
+                margin: 10px; 
             }}
             .styled-button:hover {{
                 background-color: #0056b3;
             }}
             .stock-info {{
-                text-align: left; /* Left align stock information */
-                display: inline-block; /* Align to left but keep centered in parent */
-                margin: 20px auto; /* Center it horizontally */
-                border: 1px solid #ddd; /* Light border around the stock info */
-                padding: 20px; /* Padding inside the stock info box */
-                border-radius: 10px; /* Rounded corners */
-                background-color: #f9f9f9; /* Light background color for stock info */
+                text-align: left; /* Left align stock information *
+                display: inline-block; /* Align to left but keep centered in parent *
+                margin: 20px auto; /* Center it horizontally *
+                border: 1px solid #ddd; /* Light border around the stock info *
+                padding: 20px; /* Padding inside the stock info box *
+                border-radius: 10px; /* Rounded corners *
+                background-color: #f9f9f9; /* Light background color for stock info *
+                color: #000000 * black txt for stock info *
             }}
         </style>
         <h1>Stock Information for {symbol.upper()}</h1>
@@ -133,42 +140,86 @@ def stocks():
         <a href="/" class="styled-button">Go back home</a>
         <a href="/charts" class="styled-button">View Charts</a>
     '''
-
 @app.route('/charts')
 def charts():
-    return '''
-        <style>
-            body {
-                background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee); /* Sunset gradient */
-                font-family: Arial, sans-serif; /* Modern font */
-                color: #ffffff; /* White text color for contrast */
-                text-align: center; /* Center align text and buttons */
-                padding: 50px; /* Padding around the content */
-            }
-            .styled-button {
-                display: inline-block;
-                padding: 10px 20px;
-                font-size: 16px;
-                color: white;
-                background-color: #007bff;
-                border: none;
-                border-radius: 5px;
-                text-decoration: none;
-                transition: background-color 0.3s;
-                margin: 10px; /* Space between buttons */
-            }
-            .styled-button:hover {
-                background-color: #0056b3;
-            }
-        </style>
-        <h1>Stock Charts from paul</h1>
-        <p>No charts available yet!</p>
-        <a href="/" class="styled-button">Go back home</a>
-        <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+    symbol = request.args.get('symbol', 'IBM')  
+    return f'''
+        <html>
+        <head>
+            <style>
+                body {{
+                    background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
+                    font-family: Arial, sans-serif;
+                    color: #333333;
+                    text-align: center;
+                    padding: 50px;
+                }}
+                .styled-button {{
+                    display: inline-block;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    color: white;
+                    background-color: #007bff;
+                    border: none;
+                    border-radius: 5px;
+                    text-decoration: none;
+                    transition: background-color 0.3s;
+                    margin: 10px;
+                }}
+                .styled-button:hover {{
+                    background-color: #0056b3;
+                }}
+                .chart-container {{
+                    position: relative;
+                    margin: auto;
+                    height: 400px;
+                    width: 600px;
+                }}
+            </style>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        </head>
+        <body>
+            <h1>{symbol.upper()} Stock Chart</h1>
+            <div class="chart-container">
+                <canvas id="stockChart"></canvas>
+            </div>
+            <p>Chart functionality example saddly the data is not live yet but soon
+    
+           !</p>
+            <a href="/" class="styled-button">Go back home</a>
+            <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+
+            <script>
+                var ctx = document.getElementById('stockChart').getContext('2d');
+                var stockChart = new Chart(ctx, {{
+                    type: 'line',
+                    data: {{
+                        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                        datasets: [{{
+                            label: '{symbol.upper()} Stock Price',
+                            data: [65, 59, 80, 81, 56, 55, 40],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }}]
+                    }},
+                    options: {{
+                        scales: {{
+                            y: {{
+                                beginAtZero: true
+                            }}
+                        }}
+                    }}
+                }});
+            </script>
+        </body>
+        </html>
     '''
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
 
 #getdd info is beacasue its luke_is_the_best
 
