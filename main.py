@@ -6,13 +6,15 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 
+
+
 app = Flask(__name__)
-
-
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?appName=Cluster0"
 client = MongoClient(uri, server_api=ServerApi('1'))
+#collection = client['sto']['people']
+
 
 
 
