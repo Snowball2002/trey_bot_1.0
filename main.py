@@ -5,7 +5,25 @@ import certifi
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
+
 app = Flask(__name__)
+
+
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
+
+uri = "mongodb+srv://paololaur42:<Willofire2202>@cluster0.mrifqgn.mongodb.net/?appName=Cluster0"
+
+
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+
+# Send a ping to confirm a successful connection
+
+
+
 
 
 
@@ -13,13 +31,17 @@ def get_stock_info(stocksymbol):
     apiKey = "W4M5Z9F1QRGCA3UX"
     url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksymbol}&apikey={apiKey}"
     httpresponse = requests.get(url)
-    data = httpresponse.json() 
+    data = httpresponse.json()
+
+
 
 
     print("API Response:", data)
 
+
     if "Global Quote" not in data:
         return {"error": "Stock symbol not found or API limit reached."}
+
 
     try:
         stocksymbol = data['Global Quote']['01. symbol']
@@ -27,6 +49,7 @@ def get_stock_info(stocksymbol):
         previous_close = float(data['Global Quote']['08. previous close'])
         high = float(data['Global Quote']['03. high'])
         low = float(data['Global Quote']['04. low'])
+
 
         shouldbuy = price > previous_close
         info_dictionary = {
@@ -40,6 +63,7 @@ def get_stock_info(stocksymbol):
         return info_dictionary
     except KeyError as e:
         return {"error": f"Key error: {e}"}
+
 
 @app.route('/')
 def home():
@@ -83,15 +107,19 @@ def home():
         </form>
     '''
 
+
 @app.route('/stocks')
 def stocks():
     symbol = request.args.get('symbol')
     if not symbol:
         return "<h1>Error: No stock symbol provided</h1>"
 
+
     stock_info = get_stock_info(symbol)
     if "error" in stock_info:
         return f"<h1>Error: {stock_info['error']}</h1>"
+   # Save stock info to MongoDB
+    #collection.insert_one(stock_info)
 
     return f'''
         <style>
@@ -112,7 +140,7 @@ def stocks():
                 border-radius: 5px;
                 text-decoration: none;
                 transition: background-color 0.3s;
-                margin: 10px; 
+                margin: 10px;
             }}
             .styled-button:hover {{
                 background-color: #0056b3;
@@ -183,11 +211,12 @@ def charts():
             <div class="chart-container">
                 <canvas id="stockChart"></canvas>
             </div>
-            <p>Chart functionality example saddly the data is not live yet but soon
-    
+            <p>Chart functionality example saddly the data is not live yet but soon!!!
+   
            !</p>
             <a href="/" class="styled-button">Go back home</a>
             <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+
 
             <script>
                 var ctx = document.getElementById('stockChart').getContext('2d');
@@ -217,16 +246,46 @@ def charts():
 
 
 
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
-    
+   
+
 
 #getdd info is beacasue its luke_is_the_best
 
+
 #app = Flask(__name__)
+
 
 #from flask import Flask
 
+
 #app = Flask(__name__)
 
+
 ### return "Hello, World!"
+
+
+   
+
+
+#getdd info is beacasue its luke_is_the_best
+
+
+#app = Flask(__name__)
+
+
+#from flask import Flask
+
+
+#app = Flask(__name__)
+
+
+### return "Hello, World!"
+
+
+
+
