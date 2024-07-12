@@ -11,18 +11,8 @@ app = Flask(__name__)
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-
-
-uri = "mongodb+srv://paololaur42:<Willofire2202>@cluster0.mrifqgn.mongodb.net/?appName=Cluster0"
-
-
-# Create a new client and connect to the server
+uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?appName=Cluster0"
 client = MongoClient(uri, server_api=ServerApi('1'))
-
-
-# Send a ping to confirm a successful connection
-
-
 
 
 
@@ -119,7 +109,7 @@ def stocks():
     if "error" in stock_info:
         return f"<h1>Error: {stock_info['error']}</h1>"
    # Save stock info to MongoDB
-    #collection.insert_one(stock_info)
+    client.insert_one(stock_info)
 
     return f'''
         <style>
