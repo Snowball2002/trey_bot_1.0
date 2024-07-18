@@ -1,21 +1,13 @@
 from flask import Flask, request, render_template_string
 import requests
-import os
-import certifi
 from pymongo import MongoClient
-from dotenv import load_dotenv
-
-
 
 
 app = Flask(__name__)
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?appName=Cluster0"
-client = MongoClient(uri, server_api=ServerApi('1'))
-#collection = client['sto']['people']
+uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+client = MongoClient(uri)
 
-
+mycol = client["cluster0"]["stocks"] #colle
 
 
 
@@ -111,7 +103,7 @@ def stocks():
     if "error" in stock_info:
         return f"<h1>Error: {stock_info['error']}</h1>"
    # Save stock info to MongoDB
-    client.insert_one(stock_info)
+    mycol.insert_one(stock_info) 
 
     return f'''
         <style>
