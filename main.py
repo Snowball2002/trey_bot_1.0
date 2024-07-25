@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template_string
 import requests
+import json
 from pymongo import MongoClient
 
 
@@ -154,80 +155,160 @@ def stocks():
     '''
 @app.route('/charts')
 def charts():
-    symbol = request.args.get('symbol', 'IBM')  
-    return f'''
-        <html>
-        <head>
-            <style>
-                body {{
-                    background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
-                    font-family: Arial, sans-serif;
-                    color: #333333;
-                    text-align: center;
-                    padding: 50px;
-                }}
-                .styled-button {{
-                    display: inline-block;
-                    padding: 10px 20px;
-                    font-size: 16px;
-                    color: white;
-                    background-color: #007bff;
-                    border: none;
-                    border-radius: 5px;
-                    text-decoration: none;
-                    transition: background-color 0.3s;
-                    margin: 10px;
-                }}
-                .styled-button:hover {{
-                    background-color: #0056b3;
-                }}
-                .chart-container {{
-                    position: relative;
-                    margin: auto;
-                    height: 400px;
-                    width: 600px;
-                }}
-            </style>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        </head>
-        <body>
-            <h1>{symbol.upper()} Stock Chart</h1>
-            <div class="chart-container">
-                <canvas id="stockChart"></canvas>
-            </div>
-            <p>Chart functionality example saddly the data is not live yet but soon!!!
-   
-           !</p>
-            <a href="/" class="styled-button">Go back home</a>
-            <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+   symbol = request.args.get('symbol', 'IBM')
 
 
-            <script>
-                var ctx = document.getElementById('stockChart').getContext('2d');
-                var stockChart = new Chart(ctx, {{
-                    type: 'line',
-                    data: {{
-                        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                        datasets: [{{
-                            label: '{symbol.upper()} Stock Price',
-                            data: [65, 59, 80, 81, 56, 55, 40],
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }}]
-                    }},
-                    options: {{
-                        scales: {{
-                            y: {{
-                                beginAtZero: true
-                            }}
-                        }}
-                    }}
-                }});
-            </script>
-        </body>
-        </html>
-    '''
+   # Get historical data for the symbol i request and make an api request for the daily chart in alpha vantage just like what we did for /stocks page 
+   apiKey = "W4M5Z9F1QRGCA3UX"
+   url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}"
+   httpresponse = requests.get(url)
+   data = httpresponse.json()
 
+
+   if "Time Series (Daily)" not in data:
+       return "<h1>Error: Unable to fetch historical data for the stock symbol.</h1>"
+
+
+   # this shows where i get my data for the daily charts
+   time_series = data["Time Series (Daily)"]
+   chart_data = [
+       {
+           "t": date,
+           "o": float(values["1. open"]),
+           "h": float(values["2. high"]),
+           "l": float(values["3. low"]),
+           "c": float(values["4. close"])
+       }
+       for date, values in time_series.items()
+   ]
+   chart_data_json = json.dumps(chart_data)
+
+
+   return render_template_string('''
+       <!DOCTYPE html>
+       <html>
+       <head>
+           <style>
+               body {
+                   background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
+                   font-family: Arial, sans-serif;
+                   color: #333333;
+                   text-align: center;
+                   padding: 50px;
+               }
+               .styled-button {
+                   display: inline-block;
+                   padding: 10px 20px;
+                   font-size: 16px;
+                   color: white;
+                   background-color: #007bff;
+                   border: none;
+                   border-radius: 5px;
+                   text-decoration: none;
+                   transition: background-color 0.3s;
+                   margin: 10px;
+               }
+               .styled-button:hover {
+                   background-color: #0056b3;
+               }
+               .chart-container {
+                   position: relative;
+                   margin: auto;
+                   height: 500px;
+                   width: 90%;
+                   max-width: 800px;
+               }
+           </style>
+           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+           <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>            #  supports the daily chart 
+       </head>
+       <body>
+           <h1>{{ symbol.upper() }} Stock Chart</h1>
+           <div class="chart-container">
+               <canvas id="stockChart"></canvas>
+           </div>
+           <a href="/" class="styled-button">Go back home</a>
+           <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+           <script>
+               var ctx = document.getElementById('stockChart').getContext('2d');
+               var stockChart = new Chart(ctx, {
+                   type: 'candlestick',                          # candle stick style chart to make it more eradable
+                   data: {
+                       datasets: [{
+                           label: '{{ symbol.upper() }} Stock Price',
+                           data: {{ chart_data|tojson }},
+                           borderColor: 'rgba(75, 192, 192, 1)',
+                           backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                           borderWidth: 1
+                       }]
+                   },
+                   options: {
+                       responsive: true,
+                       scales: {
+                           x: {
+                               title: {
+                                   display: true,
+                                   text: 'Date',
+                                   color: '#000000',
+                               },
+                               type: 'time',
+                               time: {
+                                   unit: 'day',
+                                   tooltipFormat: 'll'
+                               },
+                               grid: {
+                                   display: false,
+                               },
+                               ticks: {
+                                   maxRotation: 45,
+                                   minRotation: 45,
+                                   color: '#000000',
+                               }
+                           },
+                           y: {
+                               title: {
+                                   display: true,
+                                   text: 'Price (USD)',
+                                   color: '#000000',
+                               },
+                               beginAtZero: false,
+                               grid: {
+                                   color: 'rgba(200, 200, 200, 0.3)',
+                               },
+                               ticks: {
+                                   callback: function(value) {
+                                       return '$' + value;
+                                   },
+                                   color: '#000000',
+                               }
+                           }
+                       },
+                       plugins: {
+                           legend: {
+                               display: true,
+                               position: 'top',
+                               labels: {
+                                   color: '#000000',
+                               }
+                           },
+                           tooltip: {
+                               callbacks: {
+                                   label: function(context) {
+                                       var o = context.raw.o;
+                                       var h = context.raw.h;
+                                       var l = context.raw.l;
+                                       var c = context.raw.c;
+                                       return `Open: $${o}, High: $${h}, Low: $${l}, Close: $${c}`;
+                                   }
+                               }
+                           }
+                       }
+                   }
+               });
+           </script>
+       </body>
+       </html>
+   ''', symbol=symbol, chart_data=chart_data_json)
 
 
 
@@ -268,7 +349,7 @@ if __name__ == '__main__':
 #app = Flask(__name__)
 
 
-### return "Hello, World!"
+### return "Hello, World!"jnjkjn
 
 
 
