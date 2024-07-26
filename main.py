@@ -219,7 +219,7 @@ def charts():
                    max-width: 800px;
                }
            </style>
-           <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+           
            <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>            #  supports the daily chart 
        </head>
        <body>
