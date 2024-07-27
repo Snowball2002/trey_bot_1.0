@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template_string
 import requests
-import json
+import json 
 from pymongo import MongoClient
-
+apiKey = "KAWW9X9140VUDAZG"
 app = Flask(__name__)
 uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri)
@@ -10,7 +10,6 @@ client = MongoClient(uri)
 mycol = client["cluster0"]["stocks"]
 
 def get_stock_info(stocksymbol):
-    apiKey = "W4M5Z9F1QRGCA3UX"
     url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksymbol}&apikey={apiKey}"
     httpresponse = requests.get(url)
     data = httpresponse.json()
@@ -145,8 +144,6 @@ def stocks():
 @app.route('/charts')
 def charts():
     symbol = request.args.get('symbol', 'IBM').upper()
-
-    apiKey = "W4M5Z9F1QRGCA3UX"
     url = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=60min&apikey={apiKey}"
     httpresponse = requests.get(url)
     data = httpresponse.json()
