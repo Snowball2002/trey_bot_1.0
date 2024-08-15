@@ -2,7 +2,9 @@ from flask import Flask, request, render_template_string
 import requests
 import json 
 from pymongo import MongoClient
-apiKey = "KAWW9X9140VUDAZG"
+import os
+import openai 
+apiKey = "RE2JMDTRQVMIR6YY"
 app = Flask(__name__)
 uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri)
@@ -138,17 +140,19 @@ def stocks():
         </div>
         <a href="/" class="styled-button">Go back home</a>
         <a href="/charts?symbol={symbol}" class="styled-button">View Charts</a>
-        <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
+        <a href="/chat" class="styled-button">Go to Trey_bot</a>
+         <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
+        
     '''
-#is live worked not working now cant figrue out the problem char wont render in /charts page
-@app.route('/charts')
+#is live 
+@app.route('/trey_bot')
 def charts():
     symbol = request.args.get('symbol', 'IBM').upper()
-    url = f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=60min&apikey={apiKey}"
+    url = f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={apiKey}"
     httpresponse = requests.get(url)
     data = httpresponse.json()
 
-    if "Time Series (60min)" not in data:
+    if "Time Series (Daily)" not in data:
         if "Error Message" in data:
             error_message = data["Error Message"]
         elif "Note" in data:
@@ -158,23 +162,25 @@ def charts():
 
         return f"<h1>Error: {error_message}</h1>"
 
-    time_series = data["Time Series (60min)"]
-    chart_data = [
-        {
-            "datetime": date,
-            "close": float(values["4. close"])
-        }
-        for date, values in time_series.items()
-    ]
-    
-  
-    chart_data.sort(key=lambda x: x["datetime"])
+    time_series = data["Time Series (Daily)"]
+    chart_data = []
 
-    
-    latest_date = chart_data[-1]["datetime"].split()[0]
-    chart_data = [item for item in chart_data if item["datetime"].startswith(latest_date)]
-    
-    
+    # Loop the through the JSON data asked for through previous metting through chart_data as the list for such
+    for date, values in time_series.items():
+        chart_data.append({
+            "datetime": date,
+            "open": float(values["1. open"]),
+            "high": float(values["2. high"]),
+            "low": float(values["3. low"]),
+            "close": float(values["4. close"])
+        })
+
+    #7 days time srious kike we spoke aout comprising the data unlike lst time:(
+    chart_data.sort(key=lambda x: x["datetime"], reverse=True)
+    chart_data = chart_data[:7]
+    chart_data.reverse()  
+
+    # Extract x-axis atesand y-axis closing pricesand  values for the chart like we tallked about 
     dates = [item["datetime"] for item in chart_data]
     closes = [item["close"] for item in chart_data]
 
@@ -214,16 +220,16 @@ def charts():
                 }
             </style>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.2.1"></script>
         </head>
         <body>
-            <h1>{{ symbol.upper() }} Hourly Prices</h1>
+            <h1>{{ symbol.upper() }} Daily Prices (Last 7 Days)</h1>
             <div class="chart-container">
                 <canvas id="stockChart"></canvas>
             </div>
             <a href="/" class="styled-button">Go back home</a>
             <a href="/stocks" class="styled-button">Go to Stocks Info</a>
             <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
+            <a href="/chat" class="styled-button">Go to Trey_bot</a>                      
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     var ctx = document.getElementById('stockChart').getContext('2d');
@@ -232,7 +238,7 @@ def charts():
                         data: {
                             labels: {{ dates|tojson|safe }},
                             datasets: [{
-                                label: '{{ symbol }} Hourly Prices',
+                                label: '{{ symbol }} Daily Closing Prices (Last 7 Days)',
                                 data: {{ closes|tojson|safe }},
                                 borderColor: 'rgba(75, 192, 192, 1)',
                                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -246,20 +252,13 @@ def charts():
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Date and Time',
+                                        text: 'Date',
                                         color: '#ffffff',
-                                    },
-                                    type: 'time',
-                                    time: {
-                                        unit: 'hour',
-                                        tooltipFormat: 'll HH:mm'
                                     },
                                     grid: {
                                         display: false,
                                     },
                                     ticks: {
-                                        maxRotation: 45,
-                                        minRotation: 45,
                                         color: '#ffffff',
                                     }
                                 },
@@ -282,17 +281,6 @@ def charts():
                                 }
                             },
                             plugins: {
-                                zoom: {
-                                    pan: {
-                                        enabled: true,
-                                        mode: 'x'
-                                    },
-                                    zoom: {
-                                        enabled: true,
-                                        mode: 'x',
-                                        speed: 0.1
-                                    }
-                                },
                                 legend: {
                                     display: true,
                                     position: 'top',
@@ -316,7 +304,97 @@ def charts():
         </html>
     ''', symbol=symbol, dates=dates, closes=closes)
   
-  #this is a test not live yet 
+@app.route('/chat')
+def chat():
+    openai.api_key = "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"
+#this would be 2 of the roles system which is you telling the bot how to act or behave 
+#and user 
+    messages = [
+        {"role": "system",
+         "content": "You're a smart assistant who is here to help people make correct and educated financial decisions when it comes to the stock market."},
+        {"role": "user", "content": "Hello, how can the trey_bot help you today!"}
+    ]
+
+    try:
+      #connecting to the bot and setting parameters 
+        from openai import OpenAI
+        client = OpenAI()
+        completion = openai.ChatCompletion.create(
+            model="gpt_4o_mini",  
+            messages=messages,
+            max_tokens=2,  
+            stream=True
+        )
+
+        chat_response = ""
+        for chunk in completion:
+            chat_response += chunk.choices[0].delta.get('content', '')
+
+    except Exception as e:
+        chat_response = f"Error: {str(e)}"
+
+    return render_template_string('''
+           <style>
+               body {
+                   background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
+                   font-family: Arial, sans-serif;
+                   color: #ffffff;
+                   text-align: center;
+                   padding: 50px;
+               }
+               .styled-button {
+                   display: inline-block;
+                   padding: 10px 20px;
+                   font-size: 16px;
+                   color: white;
+                   background-color: #007bff;
+                   border: none;
+                   border-radius: 5px;
+                   text-decoration: none;
+                   transition: background-color 0.3s;
+                   margin: 10px;
+               }
+               .styled-button:hover {
+                   background-color: #0056b3;
+               }
+               .styled-input {
+                   display: inline-block;
+                   padding: 10px;
+                   font-size: 16px;
+                   border-radius: 5px;
+                   border: 1px solid #007bff;
+                   margin: 10px;
+               }
+               .chat-response {
+                   text-align: left;
+                   display: inline-block;
+                   margin: 20px auto;
+                   border: 1px solid #ddd;
+                   padding: 20px;
+                   border-radius: 10px;
+                   background-color: #f9f9f9;
+                   color: #000000;
+                   width: 80%;
+                   max-width: 800px;
+               }
+           </style>
+           <h1>Chat with GPT</h1>
+           <form action="/chat" method="get">
+               <input type="text" name="query" placeholder="Ask something..." class="styled-input" required>
+               <button type="submit" class="styled-button">Ask</button>
+           </form>
+           <div class="chat-response">
+               <h2>Response:</h2>
+               <p>{{ chat_response }}</p>
+           </div>
+            <a href="/" class="styled-button">Go back home</a>
+            <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+            <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>                       
+       ''', chat_response=chat_response)
+
+
+# Heatmap route 
+ #this is a test not live yet 
 @app.route('/heatmap')
 def heatmap():
     SECTOR_DATA = {
@@ -331,56 +409,59 @@ def heatmap():
     }
 
     return f'''
-        <html>
-        <head>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
-                    text-align: center;
-                    padding: 50px;
-                }}
-                .heatmap-container {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    gap: 20px;
-                }}
-                .sector-box {{
-                    border: 1px solid #ddd;
-                    border-radius: 10px;
-                    padding: 20px;
-                    width: 200px;
-                    background-color: #f9f9f9;
-                }}
-                .styled-button {{
-                    display: inline-block;
-                    padding: 10px 20px;
-                    font-size: 16px;
-                    color: white;
-                    background-color: #007bff;
-                    border: none;
-                    border-radius: 5px;
-                    text-decoration: none;
-                    transition: background-color 0.3s;
-                    margin: 10px;
-                }}
-                .styled-button:hover {{
-                    background-color: #0056b3;
-                }}
-            </style>
-        </head>
-        <body>
-            <h1>Interactive Heatmap</h1>
-            <div class="heatmap-container">
-                {''.join([f'<div class="sector-box"><h3>{sector}</h3><p>Change: {data["change"]}%</p><p>Stocks: {", ".join(data["stocks"])}</p><p>{data["description"]}</p></div>' for sector, data in SECTOR_DATA.items()])}
-            </div>
-            <a href="/" class="styled-button">Go back home</a>
-            <a href="/charts" class="styled-button">View Charts</a>
-            <a href="/stocks" class="styled-button">Go to Stocks Info</a>
-        </body>
-        </html>
-    '''
+           <html>
+           <head>
+               <style>
+                   body {{
+                       font-family: Arial, sans-serif;
+                       background: linear-gradient(to bottom right, #ff7e5f, #feb47b, #fbc2eb, #a6c1ee);
+                       text-align: center;
+                       padding: 50px;
+                   }}
+                   .heatmap-container {{
+                       display: flex;
+                       flex-wrap: wrap;
+                       justify-content: center;
+                       gap: 20px;
+                   }}
+                   .sector-box {{
+                       border: 1px solid #ddd;
+                       border-radius: 10px;
+                       padding: 20px;
+                       width: 200px;
+                       background-color: #f9f9f9;
+                   }}
+                   .styled-button {{
+                       display: inline-block;
+                       padding: 10px 20px;
+                       font-size: 16px;
+                       color: white;
+                       background-color: #007bff;
+                       border: none;
+                       border-radius: 5px;
+                       text-decoration: none;
+                       transition: background-color 0.3s;
+                       margin: 10px;
+                   }}
+                   .styled-button:hover {{
+                       background-color: #0056b3;
+                   }}
+               </style>
+           </head>
+           <body>
+               <h1>Interactive Heatmap</h1>
+               <div class="heatmap-container">
+                   {''.join([f'<div class="sector-box"><h3>{sector}</h3><p>Change: {data["change"]}%</p><p>Stocks: {", ".join(data["stocks"])}</p><p>{data["description"]}</p></div>' for sector, data in SECTOR_DATA.items()])}
+               </div>
+               <a href="/" class="styled-button">Go back home</a>
+               <a href="/charts" class="styled-button">View Charts</a>
+               <a href="/stocks" class="styled-button">Go to Stocks Info</a>
+               <a href="/chat" class="styled-button">Go to Trey_bot</a>
+           </body>
+           </html>
+       '''
+  #this is a test not live yet 
+
 
 if __name__ == '__main__':
     app.run(debug=True)
