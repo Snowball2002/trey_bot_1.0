@@ -4,6 +4,7 @@ import json
 from pymongo import MongoClient
 import os
 import openai 
+
 apiKey = "RE2JMDTRQVMIR6YY"
 app = Flask(__name__)
 uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
@@ -38,6 +39,7 @@ def get_stock_info(stocksymbol):
         return info_dictionary
     except KeyError as e:
         return {"error": f"Key error: {e}"}
+
 #live
 @app.route('/')
 def home():
@@ -79,7 +81,9 @@ def home():
             <input type="text" name="symbol" placeholder="Enter stock symbol" class="styled-input" required>
             <button type="submit" class="styled-button">Get Stock Info</button>
         </form>
+        <a href="/chat" class="styled-button">Go to Trey_bot</a>
     '''
+
 #live
 @app.route('/stocks')
 def stocks():
@@ -91,7 +95,6 @@ def stocks():
     if "error" in stock_info:
         return f"<h1>Error: {stock_info['error']}</h1>"
 
-  
     mycol.insert_one(stock_info)
 
     return f'''
@@ -140,10 +143,10 @@ def stocks():
         </div>
         <a href="/" class="styled-button">Go back home</a>
         <a href="/charts?symbol={symbol}" class="styled-button">View Charts</a>
+        <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
         <a href="/chat" class="styled-button">Go to Trey_bot</a>
-         <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
-        
     '''
+
 #is live 
 @app.route('/trey_bot')
 def charts():
@@ -328,10 +331,10 @@ def chat():
 
         chat_response = ""
         for chunk in completion:
-            chat_response += chunk.choices[0].delta.get('content', '')
+            chat_response += chunk.choices[0].delta.get('content', '') #send api response to open ai 
 
     except Exception as e:
-        chat_response = f"Error: {str(e)}"
+        chat_response = f"Error: {str(e)}" # handels any errors with user with an expetion 
 
     return render_template_string('''
            <style>
@@ -389,7 +392,8 @@ def chat():
            </div>
             <a href="/" class="styled-button">Go back home</a>
             <a href="/stocks" class="styled-button">Go to Stocks Info</a>
-            <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>                       
+            <a href="/heatmap" class="styled-button">View Interactive Heatmap</a>
+            <a href="/trey_bot" class="styled-button">Go to Trey_bot</a>                       
        ''', chat_response=chat_response)
 
 
@@ -460,11 +464,11 @@ def heatmap():
            </body>
            </html>
        '''
-  #this is a test not live yet 
-
+  
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
 
 
