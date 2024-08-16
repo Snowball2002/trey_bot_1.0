@@ -6,7 +6,7 @@ import os
 import openai
 
 
-apiKey = "RE2JMDTRQVMIR6YY"
+apiKey = "DIJN8X9MKMMW8P3X"
 app = Flask(__name__)
 uri = "mongodb+srv://paololaur42:2202@cluster0.mrifqgn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri)
